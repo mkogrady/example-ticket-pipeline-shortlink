@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/partite-ai/example-shortlink/server"
-	"github.com/partite-ai/example-shortlink/store"
+	"github.com/partite-ai/example-ticket-pipeline-shortlink/server"
+	"github.com/partite-ai/example-ticket-pipeline-shortlink/store"
 )
 
 func main() {

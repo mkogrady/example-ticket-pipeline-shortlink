@@ -30,4 +30,4 @@ a code it does not know.
 
 ## License
 
-To be decided.
+MIT. See `LICENSE`.

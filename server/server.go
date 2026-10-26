@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/partite-ai/example-shortlink/store"
-	"github.com/partite-ai/example-shortlink/validate"
+	"github.com/partite-ai/example-ticket-pipeline-shortlink/store"
+	"github.com/partite-ai/example-ticket-pipeline-shortlink/validate"
 )
 
 func New(s *store.Store) http.Handler {
