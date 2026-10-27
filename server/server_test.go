@@ -75,7 +75,7 @@ func TestRedirectUnknown(t *testing.T) {
 }
 
 func TestRedirectExpired(t *testing.T) {
-	h := New(store.NewWithTTL(20 * time.Millisecond))
+	h := New(store.New(store.WithTTL(20 * time.Millisecond)))
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest("POST", "/links", strings.NewReader(`{"url":"https://example.com"}`)))
 	if rec.Code != 201 {

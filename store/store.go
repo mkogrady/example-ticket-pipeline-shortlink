@@ -26,12 +26,20 @@ type Store struct {
 	lastSweep time.Time
 }
 
-func New() *Store {
-	return NewWithTTL(DefaultTTL)
+// Option configures a Store.
+type Option func(*Store)
+
+// WithTTL sets how long a link lives before it expires.
+func WithTTL(ttl time.Duration) Option {
+	return func(s *Store) { s.ttl = ttl }
 }
 
-func NewWithTTL(ttl time.Duration) *Store {
-	return &Store{links: map[string]entry{}, now: time.Now, ttl: ttl}
+func New(opts ...Option) *Store {
+	s := &Store{links: map[string]entry{}, now: time.Now, ttl: DefaultTTL}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 func (s *Store) Put(target string) string {

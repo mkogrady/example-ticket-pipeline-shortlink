@@ -12,16 +12,16 @@ func (c *fakeClock) now() time.Time { return c.t }
 
 func newFake(ttl time.Duration) (*Store, *fakeClock) {
 	c := &fakeClock{t: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
-	s := NewWithTTL(ttl)
+	s := New(WithTTL(ttl))
 	s.now = c.now
 	return s, c
 }
 
-func TestNewWithTTL(t *testing.T) {
+func TestWithTTL(t *testing.T) {
 	if New().ttl != DefaultTTL {
 		t.Fatal("New should use DefaultTTL")
 	}
-	if NewWithTTL(time.Second).ttl != time.Second {
+	if New(WithTTL(time.Second)).ttl != time.Second {
 		t.Fatal("ttl not set")
 	}
 }

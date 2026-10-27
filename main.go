@@ -14,5 +14,5 @@ func main() {
 	ttl := flag.Duration("ttl", store.DefaultTTL, "how long a link lives before it expires")
 	flag.Parse()
 	log.Printf("listening on %s", *addr)
-	log.Fatal(http.ListenAndServe(*addr, server.New(store.NewWithTTL(*ttl))))
+	log.Fatal(http.ListenAndServe(*addr, server.New(store.New(store.WithTTL(*ttl)))))
 }
