@@ -12,6 +12,11 @@ Create a link, then follow it:
     curl -s -X POST localhost:8080/links -d '{"url":"https://example.com"}'
     curl -si localhost:8080/<code> | head -1
 
+Links expire after 24 hours by default. Change that with `-ttl`, which
+takes a Go duration:
+
+    go run . -ttl 30m
+
 ## API
 
 `POST /links` takes `{"url": "<target>"}` and answers `201` with
@@ -20,7 +25,8 @@ is not JSON, or a URL the service does not accept, gets `400` with
 `{"error": "<reason>"}`.
 
 `GET /<code>` answers `302` with the target in `Location`, or `404` for
-a code it does not know.
+a code it does not know or that has expired. Expired links are removed
+when requested, and swept on `POST /links` at most once per minute.
 
 ## Layout
 

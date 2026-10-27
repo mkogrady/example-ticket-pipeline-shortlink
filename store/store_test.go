@@ -3,7 +3,70 @@ package store
 import (
 	"sync"
 	"testing"
+	"time"
 )
+
+type fakeClock struct{ t time.Time }
+
+func (c *fakeClock) now() time.Time { return c.t }
+
+func newFake(ttl time.Duration) (*Store, *fakeClock) {
+	c := &fakeClock{t: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
+	s := New(WithTTL(ttl))
+	s.now = c.now
+	return s, c
+}
+
+func TestWithTTL(t *testing.T) {
+	if New().ttl != DefaultTTL {
+		t.Fatal("New should use DefaultTTL")
+	}
+	if New(WithTTL(time.Second)).ttl != time.Second {
+		t.Fatal("ttl not set")
+	}
+}
+
+func TestGetBeforeExpiry(t *testing.T) {
+	s, c := newFake(time.Hour)
+	code := s.Put("https://example.com")
+	c.t = c.t.Add(time.Hour - time.Nanosecond)
+	if got, ok := s.Get(code); !ok || got != "https://example.com" {
+		t.Fatalf("got %q %v", got, ok)
+	}
+}
+
+func TestGetAfterExpiryMissesAndDeletes(t *testing.T) {
+	s, c := newFake(time.Hour)
+	code := s.Put("https://example.com")
+	c.t = c.t.Add(time.Hour)
+	if _, ok := s.Get(code); ok {
+		t.Fatal("expected miss at expiry")
+	}
+	if _, present := s.links[code]; present {
+		t.Fatal("expired entry not deleted")
+	}
+}
+
+func TestPutSweepsExpired(t *testing.T) {
+	s, c := newFake(time.Hour)
+	old := s.Put("https://old.example")
+	c.t = c.t.Add(2 * time.Hour)
+	s.Put("https://new.example")
+	if _, present := s.links[old]; present {
+		t.Fatal("expired entry survived sweep")
+	}
+}
+
+func TestPutSweepThrottled(t *testing.T) {
+	s, c := newFake(time.Second)
+	s.Put("https://a.example") // sweeps at t0
+	old := s.Put("https://old.example")
+	c.t = c.t.Add(10 * time.Second) // expired, but under a minute since sweep
+	s.Put("https://new.example")
+	if _, present := s.links[old]; !present {
+		t.Fatal("sweep ran more than once per minute")
+	}
+}
 
 func TestPutGet(t *testing.T) {
 	s := New()
