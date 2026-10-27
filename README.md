@@ -22,7 +22,8 @@ takes a Go duration:
 `POST /links` takes `{"url": "<target>"}` and answers `201` with
 `{"code": "<code>", "short_url": "http://<host>/<code>"}`. A body that
 is not JSON, or a URL the service does not accept, gets `400` with
-`{"error": "<reason>"}`.
+`{"error": "<reason>"}`. The target URL must be absolute, with an `http`
+or `https` scheme and a host; anything else gets `400`.
 
 `GET /<code>` answers `302` with the target in `Location`, or `404` for
 a code it does not know or that has expired. Expired links are removed

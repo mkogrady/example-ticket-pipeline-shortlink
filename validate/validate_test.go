@@ -33,6 +33,19 @@ func TestURLSchemes(t *testing.T) {
 	}
 }
 
+func TestURLRejectsMissingHost(t *testing.T) {
+	for _, in := range []string{"https://", "http:///path", "http:foo"} {
+		if err := URL(in); err == nil || !strings.HasPrefix(err.Error(), "invalid url") {
+			t.Errorf("URL(%q) = %v", in, err)
+		}
+	}
+	for _, in := range []string{"https://example.com", "http://localhost:8080/x"} {
+		if err := URL(in); err != nil {
+			t.Errorf("URL(%q) = %v", in, err)
+		}
+	}
+}
+
 func TestURLRejectsTooLong(t *testing.T) {
 	s := "https://example.com/" + strings.Repeat("a", 2049-len("https://example.com/"))
 	if err := URL(s); err == nil || !strings.HasPrefix(err.Error(), "invalid url") {

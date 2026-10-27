@@ -57,6 +57,14 @@ func TestCreateRejectsSchemelessURL(t *testing.T) {
 	}
 }
 
+func TestCreateRejectsHostlessURL(t *testing.T) {
+	rec := httptest.NewRecorder()
+	New(store.New()).ServeHTTP(rec, httptest.NewRequest("POST", "/links", strings.NewReader(`{"url":"https://"}`)))
+	if rec.Code != 400 || !strings.Contains(rec.Body.String(), `"error"`) {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+}
+
 func TestCreateRejectsTooLongURL(t *testing.T) {
 	body := `{"url":"https://example.com/` + strings.Repeat("a", 2100) + `"}`
 	rec := httptest.NewRecorder()

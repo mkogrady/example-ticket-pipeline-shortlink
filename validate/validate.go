@@ -23,5 +23,8 @@ func URL(s string) error {
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return errors.New("invalid url: scheme must be http or https")
 	}
+	if u.Hostname() == "" {
+		return errors.New("invalid url: missing host")
+	}
 	return nil
 }
