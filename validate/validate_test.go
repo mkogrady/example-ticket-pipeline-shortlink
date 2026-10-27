@@ -11,14 +11,38 @@ func TestURLAcceptsAbsolute(t *testing.T) {
 	}
 }
 
-func TestURLAcceptsSchemeless(t *testing.T) {
-	if err := URL("example.com"); err != nil {
-		t.Fatal(err)
+func TestURLRejectsSchemeless(t *testing.T) {
+	err := URL("example.com")
+	if err == nil || !strings.HasPrefix(err.Error(), "invalid url") || !strings.Contains(err.Error(), "http or https") {
+		t.Fatalf("got %v", err)
 	}
 }
 
-func TestURLAcceptsLong(t *testing.T) {
-	if err := URL("https://example.com/" + strings.Repeat("a", 5000)); err != nil {
+func TestURLSchemes(t *testing.T) {
+	for _, tc := range []struct {
+		in      string
+		wantErr bool
+	}{
+		{"ftp://example.com", true},
+		{"mailto:a@b.c", true},
+		{"HTTP://example.com", false},
+	} {
+		if err := URL(tc.in); (err != nil) != tc.wantErr {
+			t.Errorf("URL(%q) = %v, wantErr %v", tc.in, err, tc.wantErr)
+		}
+	}
+}
+
+func TestURLRejectsTooLong(t *testing.T) {
+	s := "https://example.com/" + strings.Repeat("a", 2049-len("https://example.com/"))
+	if err := URL(s); err == nil || !strings.HasPrefix(err.Error(), "invalid url") {
+		t.Fatalf("got %v", err)
+	}
+}
+
+func TestURLAcceptsMaxLength(t *testing.T) {
+	s := "https://example.com/" + strings.Repeat("a", 2048-len("https://example.com/"))
+	if err := URL(s); err != nil {
 		t.Fatal(err)
 	}
 }
