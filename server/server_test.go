@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/partite-ai/example-ticket-pipeline-shortlink/store"
 )
@@ -68,6 +69,25 @@ func TestCreateRejectsTooLongURL(t *testing.T) {
 func TestRedirectUnknown(t *testing.T) {
 	rec := httptest.NewRecorder()
 	New(store.New()).ServeHTTP(rec, httptest.NewRequest("GET", "/nothere", nil))
+	if rec.Code != 404 {
+		t.Fatalf("%d", rec.Code)
+	}
+}
+
+func TestRedirectExpired(t *testing.T) {
+	h := New(store.NewWithTTL(20 * time.Millisecond))
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("POST", "/links", strings.NewReader(`{"url":"https://example.com"}`)))
+	if rec.Code != 201 {
+		t.Fatalf("status %d %s", rec.Code, rec.Body)
+	}
+	var body struct {
+		Code string `json:"code"`
+	}
+	json.Unmarshal(rec.Body.Bytes(), &body)
+	time.Sleep(50 * time.Millisecond)
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/"+body.Code, nil))
 	if rec.Code != 404 {
 		t.Fatalf("%d", rec.Code)
 	}
